@@ -1,0 +1,239 @@
+{% extends "projetos/index.html" %}
+{% load staticfiles %}
+{% block headercss %}
+    <link href="{% static 'assets/advanced-datatable/media/css/demo_page.css' %}" rel="stylesheet" />
+    <link href="{% static 'assets/advanced-datatable/media/css/demo_table.css' %}" rel="stylesheet" />
+{% endblock headercss %}
+
+{% block content %}
+<section id="main-content">
+    <section class="wrapper">
+        <!-- page start-->
+        
+            <aside class="profile-info col-lg-12">
+                <section class="panel">
+                  <div class="row">
+            {% include "projetos/menu.html" %} </div>
+                    <div class="bio-graph-heading">
+                        Lista de Projetos de Extensão - UFSM
+                    </div>
+                    <div class="panel-body">
+                        <form id="frm_pesquisa" method="post" action="{% url request|viewname %}">
+                          {% csrf_token %}
+                          <div class="input-group m-bot15 col-lg-6">
+                              <div class="input-group-btn">
+                                <button type="button" class="btn btn-white dropdown-toggle" data-toggle="dropdown">
+                                  <div id="seletor">{{ filtro_nome }} <span class="caret"></span></div>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a onclick="javascript:$('#seletor').html('Número <span class=\'caret\'></span>');$('#valor').attr('name', 'numero__icontains')">Número</a></li>
+                                    <li><a onclick="javascript:$('#seletor').html('Título <span class=\'caret\'></span>');$('#valor').attr('name', 'titulo__icontains')">Título</a></li>
+                              <li><a onclick="javascript:$('#seletor').html('Data Inicial <span class=\'caret\'></span>');$('#valor').attr('name', 'data_inicial')">Data Inicial</a></li>
+                                    <li><a onclick="javascript:$('#seletor').html('Data Conclusão <span class=\'caret\'></span>');$('#valor').attr('name', 'data_conclusao')">Data Conclusão</a></li>
+                                    
+                                </ul>
+                              </div>
+                               {% if filtro_campo and 'data_' not in filtro_campo %}
+                                <input type="text" class="form-control" id="valor" name="{{ filtro_campo }}__icontains" value="{{ filtro_valor }}">
+                               {% elif filtro_campo %}
+                                <input type="text" class="form-control" id="valor" name="{{ filtro_campo }}" value="{{ filtro_valor }}">
+                               {% else %}
+                                <input type="text" class="form-control" id="valor" name="numero" value="{{ filtro_valor }}">
+                               {% endif %}
+                              
+                              <div class="input-group-btn">
+                                <button type="button" class="btn btn-white dropdown-toggle" data-toggle="dropdown">
+                                  <div id="seletor_situacao">Situação {{ filtro_valor_situacao }}<span class="caret"></span></div>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a onclick="javascript:$('#seletor_situacao').html('Todas <span class=\'caret\'></span>');$('#valor_situacao').val('')">Todas</a></li>
+                                    <li><a onclick="javascript:$('#seletor_situacao').html('Cancelado <span class=\'caret\'></span>');$('#valor_situacao').val('Cancelado')">Cancelado</a></li>
+                                    <li><a onclick="javascript:$('#seletor_situacao').html('Concluído <span class=\'caret\'></span>');$('#valor_situacao').val('Concluído')">Concluído/Publicado</a></li>
+                                    <li><a onclick="javascript:$('#seletor_situacao').html('Andamento <span class=\'caret\'></span>');$('#valor_situacao').val('Andamento')">Em Andamento</a></li>
+                                    <li><a onclick="javascript:$('#seletor_situacao').html('Trâmite <span class=\'caret\'></span>');$('#valor_situacao').val('Trâmite')">Em Trâmite para registro</a></li>
+                                    <li><a onclick="javascript:$('#seletor_situacao').html('Indeferido <span class=\'caret\'></span>');$('#valor_situacao').val('Indeferido')">Indeferido</a></li>
+                                    <li><a onclick="javascript:$('#seletor_situacao').html('Renovado <span class=\'caret\'></span>');$('#valor_situacao').val('Renovado')">Renovado</a></li>
+                                    <li><a onclick="javascript:$('#seletor_situacao').html('Suspenso <span class=\'caret\'></span>');$('#valor_situacao').val('Suspenso')">Suspenso</a></li>
+                                </ul>
+                              </div>
+                              <input type="hidden" class="form-control" id="valor_situacao" name="situacao__icontains" value="{{ filtro_valor_situacao }}">
+                              <span class="input-group-btn">
+                                <button type="submit" class="btn btn-white" type="button">Buscar</button>
+                              </span>
+                          </div>
+                        </form>
+                        <div class="adv-table">
+                            <table cellpadding="0" cellspacing="0" border="0" class="display table table-bordered" id="hidden-table-info">
+                                <thead>
+                                <tr>
+                                    <th class="hidden-phone">
+                                      {% if order == 'numero' %}
+                                      <a href="{% url request|viewname page fields|indexOf:'numero' tpOrderInv object_qtdpage %}">Número</a>
+                                      {% else %}
+                                      <a href="{% url request|viewname page fields|indexOf:'numero' 'asc' object_qtdpage %}">Número</a>
+                                      {% endif %}
+                                    </th>
+                                    <th class="hidden-phone">
+                                      {% if order == 'titulo' %}
+                                      <a href="{% url request|viewname page fields|indexOf:'titulo' tpOrderInv object_qtdpage %}">Título</a>
+                                      {% else %}
+                                      <a href="{% url request|viewname page fields|indexOf:'titulo' 'asc' object_qtdpage %}">Título</a>
+                                      {% endif %}
+                                    </th>
+                                    <th class="hidden-phone">
+                                      {% if order == 'situacao' %}
+                                      <a href="{% url request|viewname page fields|indexOf:'situacao' tpOrderInv object_qtdpage %}">Situação</a>
+                                      {% else %}
+                                      <a href="{% url request|viewname page fields|indexOf:'situacao' 'asc' object_qtdpage %}">Situação</a>
+                                      {% endif %}
+                                    </th>
+                                    <th class="hidden-phone">
+                                      {% if order == 'data_inicial' %}
+                                      <a href="{% url request|viewname page fields|indexOf:'data_inicial' tpOrderInv object_qtdpage %}">Data Inicial</a>
+                                      {% else %}
+                                      <a href="{% url request|viewname page fields|indexOf:'data_inicial' 'asc' object_qtdpage %}">Data Inicial</a>
+                                      {% endif %}
+                                    </th>
+                                    <th class="hidden-phone">
+                                      {% if order == 'data_conclusao' %}
+                                      <a href="{% url request|viewname page fields|indexOf:'data_conclusao' tpOrderInv object_qtdpage %}">Data Conclusão</a>
+                                      {% else %}
+                                      <a href="{% url request|viewname page fields|indexOf:'data_conclusao' 'asc' object_qtdpage %}">Data Conclusão</a>
+                                      {% endif %}
+                                    </th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for obj in object_list %}
+                                    <tr class="gradeA" rel="{{ obj.numero }}">
+                                        <td class="center hidden-phone">{{ obj.numero }}</td>
+                                        <td class="center hidden-phone">{{ obj.titulo }}</td>
+                                        <td class="center hidden-phone">{{ obj.situacao }}</td>
+                                        <td class="center hidden-phone">{{ obj.data_inicial|date:"d/m/Y" }}</td>
+                                        <td class="center hidden-phone">{{ obj.data_conclusao|date:"d/m/Y" }}</td>
+                                      
+                                        
+
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div>
+                            {% include "projetos/paginacao.html" %}
+                        </div>
+                    </div>
+                </section>
+            </aside>
+        </div>
+      </section>
+  </section>
+</section>
+{% endblock content %}
+
+{% block jqueryext %}
+    <script type="text/javascript" language="javascript" src="{% static 'assets/advanced-datatable/media/js/jquery.js' %}"></script>
+{% endblock jqueryext %}
+
+{% block js-foot %}
+    <script type="text/javascript" language="javascript" src="{% static 'assets/advanced-datatable/media/js/jquery.dataTables.js' %}"></script>
+    <script type="text/javascript">
+      /* Formating function for row details */
+      function fnFormatDetails ( oTable, nTr )
+      {
+          var aData = oTable.fnGetData( nTr );
+          var id = $(nTr).attr('rel');
+          $.ajax({
+              type: "POST",
+              dataType : "json",
+              url: "/projetos/detalhes",
+              data: {
+                  'numero': id,
+                  'csrfmiddlewaretoken': '{{ csrf_token }}',
+              },
+              success: function(jsonData){
+                  var sOut = '<table cellpadding="5" cellspacing="0" border="0" style="padding-left:50px;">';
+                  if(jsonData.resultFail) {
+                      sOut += "<tr><td colspan='3'>" + jsonData.resultFail + "</td><tr>";
+                  }
+                  else {
+                      $.each(jsonData, function(i, item){
+                          sOut += '<tr>';
+                          sOut += '<td>Avaliação:</td><td>'+item.fields.avaliacao+'</td>';
+                          sOut += '<td>Classificacao:</td><td>'+item.fields.classificacao+'</td>';
+                          sOut += '</tr>';
+                          sOut += '<tr>';
+                          sOut += '<td>Data Registro:</td><td>'+item.fields.data_registro+'</td>';
+                          sOut += '<td>Data Última Avaliação:</td><td>'+item.fields.data_ult_aval+'</td>';
+                          sOut += '</tr>';
+                          sOut += '<tr>';
+                          sOut += '<td>Situação:</td><td>'+item.fields.situacao+'</td>';
+                          sOut += '<td>Departamento:</td><td>'+item.fields.departamento+'</td>';
+                          sOut += '</tr>';
+                          if (item.fields.valor_previsto!=null && item.fields.valor_previsto!='null'){
+                            sOut += '<tr>';
+                            sOut += '<td>Valor Previsto:</td><td>'+item.fields.valor_previsto+'</td>';
+                            sOut += '</tr>';
+                          }
+                      });
+                  }
+                  sOut += '</table>';
+                  oTable.fnOpen( nTr, sOut, 'details' );
+              }
+          });
+      }
+
+      $(document).ready(function() {
+          /*
+           * Insert a 'details' column to the table
+           */
+          var nCloneTh = document.createElement( 'th' );
+          var nCloneTd = document.createElement( 'td' );
+          nCloneTd.innerHTML = '<img src="{% static 'assets/advanced-datatable/examples/examples_support/details_open.png' %}">';
+          nCloneTd.className = "center";
+
+          $('#hidden-table-info thead tr').each( function () {
+              this.insertBefore( nCloneTh, this.childNodes[0] );
+          } );
+
+          $('#hidden-table-info tbody tr').each( function () {
+              this.insertBefore(  nCloneTd.cloneNode( true ), this.childNodes[0] );
+          } );
+
+          /*
+           * Initialse DataTables, with no sorting on the 'details' column
+           */
+          var oTable = $('#hidden-table-info').dataTable( {
+              "aoColumnDefs": [
+                  { "bSortable": false, "aTargets": false }
+              ],
+              "aaSorting": [[1, 'asc']],
+              "bFilter": false,
+              "bInfo" : false,
+              "bLengthChange": false,
+              "bPaginate": false,
+              "bSortable": false
+          });
+
+          /* Add event listener for opening and closing details
+           * Note that the indicator for showing which row is open is not controlled by DataTables,
+           * rather it is done here
+           */
+          $('#hidden-table-info tbody td img').live('click', function () {
+              var nTr = $(this).parents('tr')[0];
+              if ( oTable.fnIsOpen(nTr) )
+              {
+                  /* This row is already open - close it */
+                  this.src = "{% static 'assets/advanced-datatable/examples/examples_support/details_open.png' %}";
+                  oTable.fnClose( nTr );
+              }
+              else
+              {
+                  /* Open this row */
+                  this.src = "{% static 'assets/advanced-datatable/examples/examples_support/details_close.png' %}";
+                  fnFormatDetails(oTable, nTr);
+              }
+          } );
+      } );
+  </script>
+{% endblock js-foot %}

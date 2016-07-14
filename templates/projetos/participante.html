@@ -1,0 +1,80 @@
+{% extends "projetos/index.html" %} {% load staticfiles %} {% block headercss %}
+<link href="{% static 'assets/morris.js-0.4.3/morris.css' %}" rel="stylesheet" /> {% endblock headercss %} {% block content %}
+<section id="main-content">
+    <section class="wrapper">
+        <!-- page start-->
+        <aside class="profile-info col-lg-12">
+            <section class="panel">
+                <div class="row">
+                    {% include "projetos/menu.html" %} </div>
+                <div class="bio-graph-heading">
+                    Participantes/Unidade
+                </div>
+                </div>
+            </section>
+            <section>
+                <div id="morris">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <section class="panel">
+
+                                <header proader class="panel-heading">
+                                  Filtro - Participantes / Unidade
+                                    <form id="frm_pesquisa" method="post" action="{% url request|viewname %}">
+                                        {% csrf_token %}
+                                        <div class="checkboxes input-group m-bot30 col-lg-12">
+                                            {% for k, v in participante_unidade_todos.items %}
+                                                <label class="label_check" for="{{v.id}}">
+                                                <input name="{{v.id}}" id="{{v.id}}" type="checkbox" {% if v.id in filtro_deps %} checked {% endif %} /> {{k}} </label>
+                                            {% endfor %}
+                                        </div>
+                                        <span class="input-group-btn">
+                                          <button type="submit" class="btn btn-white" type="button">Filtrar</button>
+                                        </span>
+                                    </form>
+                                </header>
+                                <div class="panel-body">
+                                    <div id="bar_participante_unidade" class="graph"></div>
+                                </div>
+                            </section>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </aside>
+    </section>
+</section>
+{% endblock content %} {% block pluginsjs %}
+<script src="{% static 'assets/chart-master/Chart2.js' %}"></script>
+<script src="{% static 'assets/morris.js-0.4.3/morris.min.js' %}" type="text/javascript"></script>
+<script src="{% static 'assets/morris.js-0.4.3/raphael-min.js' %}" type="text/javascript"></script>
+<script src="{% static 'assets/jquery-knob/js/jquery.knob.js' %}"></script>
+{% endblock pluginsjs %} {% block js-foot %}
+<script>
+    $(function() {
+      $(".knob").knob({
+        'draw' : function () { 
+          $(this.i).val(this.cv + '%')
+        }
+      });
+      var barParUnidadeData = [
+          {% for k, v in participante_unidade.items %}
+            { unidade: '{{ k }}', participantes: {{ v.count }} },
+          {% endfor %}
+      ];
+      Morris.Bar({
+        element: 'bar_participante_unidade',
+        data: barParUnidadeData,
+        xkey: 'unidade',
+        ykeys: ['participantes'],
+        labels: ['Participantes'],
+        barRatio: 0.4,
+        xLabelAngle: 35,
+        hideHover: 'auto',
+        barColors: ['#6883a3']
+      });
+    });
+</script>
+{% endblock %}
+</body>
+</html>
